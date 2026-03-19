@@ -33,7 +33,7 @@
         .profile { display: flex; gap: 12px; align-items: center; }
         .profile img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
         
-        .highlight-node { border: 3px solid #ffc107 !important; background: #fff9e6 !important; box-shadow: 0 0 15px rgba(255,193,7,0.5); }
+        .highlight-node { border: 3px solid #ffc107 !important; background: #fff9e6 !important; }
 
         #admin-lock { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: #222; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; border: 3px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.4); font-size: 24px; cursor: pointer; }
         #login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; align-items: center; justify-content: center; }
@@ -50,7 +50,7 @@
     <h2 style="text-align: center;">👨‍👩‍👧‍👦 হাফিজ মোল্লা ফ্যামিলি আর্কাইভ</h2>
 
     <div class="search-container">
-        <input type="text" id="treeSearch" list="search-suggestions" placeholder="নাম লিখে সাজেশনে ক্লিক করুন..." oninput="handleSearch(this.value)">
+        <input type="text" id="treeSearch" list="search-suggestions" placeholder="নাম লিখে সাজেশনে ক্লিক করুন..." onchange="handleSearch(this.value)">
         <datalist id="search-suggestions"></datalist>
     </div>
 
@@ -61,16 +61,31 @@
 
     <div id="admin-panel">
         <h3 style="margin-top:0; color: var(--primary);">অ্যাডমিন কন্ট্রোল</h3>
+        
+        <div class="field-manager">
+            <label><b>তথ্য ফিল্ড পরিচালনা</b></label>
+            <div id="active-fields-list"></div>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <input type="text" id="new-field-name" placeholder="নতুন ফিল্ডের নাম">
+                <button onclick="addNewField()" style="background:var(--success); color:white; border:none; padding:0 15px; border-radius:8px; cursor:pointer;">+</button>
+            </div>
+        </div>
+
         <div id="member-form">
+            <label><b>সদস্য এডিট ফরম</b></label>
             <input type="hidden" id="edit-id">
             <div class="input-group"><input type="number" id="mSerial" placeholder="সিরিয়াল নম্বর"></div>
             <div class="input-group"><input type="text" id="mName" placeholder="সদস্যের নাম"></div>
-            <div class="input-group"><input type="text" id="mParentId" list="parent-list" placeholder="পিতা/মাতার আইডি (ID)"></div>
+            <div class="input-group">
+                <input type="text" id="mParentId" list="parent-list" placeholder="পিতা/মাতার আইডি (ID)">
+                <datalist id="parent-list"></datalist>
+            </div>
             <div class="input-group"><input type="text" id="mRelation" placeholder="সম্পর্ক"></div>
             <div class="input-group"><input type="text" id="mPhoto" placeholder="ছবির লিঙ্ক (URL)"></div>
             <div id="dynamic-inputs-container"></div>
+            
             <div class="admin-btns">
-                <button class="btn-save" id="save-btn" onclick="addOrUpdate()">সেভ করুন</button>
+                <button class="btn-save" id="save-btn" onclick="addOrUpdate()">আপডেট করুন</button>
                 <button class="btn-download" onclick="downloadUpdatedFile()">ফাইল ডাউনলোড</button>
             </div>
             <button class="btn-logout" onclick="logout()">লগআউট</button>
@@ -95,7 +110,7 @@
 <footer>Developed By: Md Nahidur Reza &copy; 2026</footer>
 
 <script>
-// --- FULL DATA ---
+// --- DATA SECTION ---
 let familyData = [
   { "id": 1, "parentId": null, "name": "মরহুম হাজি আঃ হাফিজ মোল্লা", "relation": "মূল পুরুষ", "img": "https://i.ibb.co.com/gZDrkKNy/HAHM.png", "extra": {}, "serial": 1 },
   { "id": 2, "parentId": 1, "name": "মরহুম হাজি আঃ আহাদ মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/bj6nnQBZ/01.jpg", "extra": {}, "serial": 1 },
@@ -133,9 +148,45 @@ let familyData = [
   { "id": 34, "parentId": 1, "name": "মোসাম্মৎ শরীফা বেগম", "relation": "কন্যা-০৩", "img": "https://i.ibb.co.com/3mLjwRnx/09.jpg", "extra": {}, "serial": 9 }
 ];
 
+let dynamicFields = ["পেশা", "মোবাইল", "ঠিকানা"];
 let isAdmin = false;
 
-// --- RENDER FUNCTION ---
+// --- CORE FUNCTIONS ---
+function renderFieldManager() {
+    const list = document.getElementById('active-fields-list');
+    list.innerHTML = '';
+    dynamicFields.forEach(field => {
+        list.innerHTML += `<div class="field-item"><span>${field}</span><button onclick="removeField('${field}')" style="color:var(--danger); border:none; background:none; cursor:pointer;">×</button></div>`;
+    });
+    renderDynamicInputs();
+}
+
+function addNewField() {
+    const name = document.getElementById('new-field-name').value.trim();
+    if(name && !dynamicFields.includes(name)) {
+        dynamicFields.push(name);
+        document.getElementById('new-field-name').value = '';
+        renderFieldManager();
+    }
+}
+
+function removeField(name) {
+    if(confirm(`'${name}' মুছে ফেললে সবার থেকে এই তথ্য মুছে যাবে। নিশ্চিত?`)) {
+        dynamicFields = dynamicFields.filter(f => f !== name);
+        familyData.forEach(m => { if(m.extra) delete m.extra[name]; });
+        renderFieldManager();
+        refresh();
+    }
+}
+
+function renderDynamicInputs() {
+    const container = document.getElementById('dynamic-inputs-container');
+    container.innerHTML = '';
+    dynamicFields.forEach(f => {
+        container.innerHTML += `<div class="input-group"><input type="text" class="dyn-input" data-field="${f}" placeholder="${f}"></div>`;
+    });
+}
+
 function renderTree(parentId, container) {
     const children = familyData
         .filter(m => m.parentId == parentId)
@@ -144,7 +195,6 @@ function renderTree(parentId, container) {
     children.forEach(m => {
         const details = document.createElement('details');
         details.className = 'family-node';
-        details.dataset.name = m.name.toLowerCase();
         if (parentId === null) details.open = true;
 
         let extraHtml = '';
@@ -165,8 +215,8 @@ function renderTree(parentId, container) {
                     </div>
                 </div>
                 <div style="display: ${isAdmin ? 'flex' : 'none'}; gap:10px; margin-top:10px;">
-                    <button onclick="startEdit(${m.id})" style="background:#ffc107; border:none; padding:5px 10px; border-radius:5px;">এডিট</button>
-                    <button onclick="deleteMember(${m.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:5px;">মুছুন</button>
+                    <button onclick="startEdit(${m.id})" style="background:#ffc107; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">এডিট</button>
+                    <button onclick="deleteMember(${m.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">ডিলিট</button>
                 </div>
             </div>
             <div class="nested"></div>
@@ -181,51 +231,113 @@ function refresh() {
     display.innerHTML = '';
     renderTree(null, display);
     
-    // ডাটালিস্ট আপডেট
     const sl = document.getElementById('search-suggestions');
-    sl.innerHTML = '';
-    familyData.forEach(m => sl.innerHTML += `<option value="${m.name}">`);
+    const pl = document.getElementById('parent-list');
+    sl.innerHTML = ''; pl.innerHTML = '';
+    familyData.forEach(m => {
+        sl.innerHTML += `<option value="${m.name}">`;
+        pl.innerHTML += `<option value="${m.id}"> (${m.name})`;
+    });
 }
 
-// --- SEARCH LOGIC (FIXED) ---
 function handleSearch(val) {
     const searchVal = val.trim().toLowerCase();
     if (!searchVal) return;
-
+    document.querySelectorAll('.family-node').forEach(n => n.classList.remove('highlight-node'));
     let found = false;
-
     document.querySelectorAll('.family-node').forEach(node => {
-        node.classList.remove('highlight-node');
-
-        const name = node.dataset.name; // শুধু নাম নিচ্ছে
-
-        if (name.includes(searchVal)) {
+        if (node.querySelector('summary').innerText.toLowerCase().includes(searchVal)) {
             node.open = true;
             node.classList.add('highlight-node');
-
-            // parent খুলবে
             let p = node.parentElement.closest('details');
-            while (p) {
-                p.open = true;
-                p = p.parentElement.closest('details');
-            }
-
-            if (!found) {
-                node.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                found = true;
-            }
+            while(p) { p.open = true; p = p.parentElement.closest('details'); }
+            if (!found) { node.scrollIntoView({ behavior: 'smooth', block: 'center' }); found = true; }
         }
     });
 }
 
-// --- ADMIN & OTHERS ---
+function addOrUpdate() {
+    const id = document.getElementById('edit-id').value;
+    const name = document.getElementById('mName').value;
+    if(!name) return alert("নাম দিন");
+
+    let extraData = {};
+    document.querySelectorAll('.dyn-input').forEach(input => {
+        extraData[input.dataset.field] = input.value;
+    });
+
+    const member = {
+        id: id ? parseInt(id) : Date.now(),
+        parentId: document.getElementById('mParentId').value ? parseInt(document.getElementById('mParentId').value) : null,
+        serial: parseInt(document.getElementById('mSerial').value) || 0,
+        name: name,
+        relation: document.getElementById('mRelation').value,
+        img: document.getElementById('mPhoto').value,
+        extra: extraData
+    };
+
+    if(id) {
+        const index = familyData.findIndex(m => m.id == id);
+        familyData[index] = member;
+    } else {
+        familyData.push(member);
+    }
+    
+    refresh(); clearForm();
+    alert("সফলভাবে আপডেট হয়েছে! স্থায়ীভাবে সেভ করতে 'ফাইল ডাউনলোড' বাটনে ক্লিক করে গিটহাবে আপলোড করুন।");
+}
+
+function startEdit(id) {
+    const m = familyData.find(m => m.id == id);
+    document.getElementById('edit-id').value = m.id;
+    document.getElementById('mSerial').value = m.serial || '';
+    document.getElementById('mName').value = m.name;
+    document.getElementById('mParentId').value = m.parentId || '';
+    document.getElementById('mRelation').value = m.relation;
+    document.getElementById('mPhoto').value = m.img;
+    document.querySelectorAll('.dyn-input').forEach(input => {
+        input.value = (m.extra && m.extra[input.dataset.field]) ? m.extra[input.dataset.field] : '';
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteMember(id) {
+    if(confirm("নিশ্চিত মুছতে চান?")) {
+        familyData = familyData.filter(m => m.id !== id);
+        refresh();
+    }
+}
+
+function downloadUpdatedFile() {
+    let html = document.documentElement.outerHTML;
+    const dataStr = `let familyData = ${JSON.stringify(familyData, null, 2)};`;
+    const fieldsStr = `let dynamicFields = ${JSON.stringify(dynamicFields)};`;
+    
+    html = html.replace(/let familyData = \[[\s\S]*?\];/, dataStr);
+    html = html.replace(/let dynamicFields = \[[\s\S]*?\];/, fieldsStr);
+    html = html.replace(/isAdmin = true/g, 'isAdmin = false'); // সেভ হওয়ার সময় অ্যাডমিন বন্ধ থাকবে
+    
+    const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "index.html";
+    a.click();
+}
+
 function checkAuth() {
     if (document.getElementById('adminPass').value === "admin786") {
         isAdmin = true;
         document.getElementById('admin-panel').style.display = 'block';
         document.getElementById('admin-lock').style.display = 'none';
+        renderFieldManager();
         closeLogin(); refresh();
     } else alert("ভুল পাসওয়ার্ড!");
+}
+
+function clearForm() {
+    document.getElementById('edit-id').value = '';
+    document.getElementById('mName').value = '';
+    document.querySelectorAll('.dyn-input').forEach(i => i.value = '');
 }
 
 function toggleAllTrees(open) { document.querySelectorAll('.family-node').forEach(n => n.open = open); }
