@@ -1,23 +1,27 @@
 <!DOCTYPE html>
-<html lang="bn">
-<head>
+<html lang="bn"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>হাফিজ মোল্লা ফ্যামিলি আর্কাইভ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&amp;display=swap" rel="stylesheet">
     <style>
         :root { --primary: #007bff; --bg: #f4f7f6; --danger: #dc3545; --success: #28a745; }
         body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 100px; scroll-behavior: smooth; }
         .container { max-width: 550px; margin: auto; }
         
-        .search-container { margin-bottom: 15px; position: relative; }
+        /* Search Box */
+        .search-box { position: relative; margin-bottom: 20px; }
         #treeSearch { width: 100%; padding: 14px 20px; border-radius: 30px; border: 2px solid var(--primary); box-sizing: border-box; outline: none; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .search-results { position: absolute; top: 55px; left: 0; width: 100%; background: #fff; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 5000; max-height: 250px; overflow-y: auto; display: none; border: 1px solid #ddd; }
+        .search-results div { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .search-results div:hover { background: #f0f7ff; color: var(--primary); }
 
         .btn-ctrl { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; color: #555; margin: 2px; }
 
+        /* Admin Panel */
         #admin-panel { display: none; background: #fff; padding: 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .input-group { margin-bottom: 12px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
         
         .field-manager { background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 15px; }
         .field-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 5px 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #eee; }
@@ -27,14 +31,16 @@
         .btn-download { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-logout { background: #6c757d; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer; }
 
+        /* Tree Styles */
         details { background: #fff; margin-bottom: 10px; border-radius: 10px; border: 1px solid #e0e0e0; overflow: hidden; }
         summary { padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; outline: none; }
         .content { padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
         .profile { display: flex; gap: 12px; align-items: center; }
         .profile img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
         
-        .highlight-node { border: 3px solid #ffc107 !important; background: #fff9e6 !important; }
+        .highlight-node { border: 3px solid #ffc107 !important; background: #fff9e6 !important; box-shadow: 0 0 15px rgba(255,193,7,0.5); }
 
+        /* Modals & Buttons */
         #admin-lock { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: #222; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; border: 3px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.4); font-size: 24px; cursor: pointer; }
         #login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; align-items: center; justify-content: center; }
         .login-box { background: #fff; padding: 25px; border-radius: 15px; width: 280px; text-align: center; }
@@ -42,16 +48,20 @@
         #modalImg { max-width: 90%; max-height: 80%; border-radius: 10px; border: 3px solid #fff; }
         .nested { margin-left: 15px; border-left: 2px dashed #ccc; padding-left: 10px; }
         footer { text-align: center; padding: 25px; color: #2c3e50; font-size: 1em; font-weight: bold; }
+
+        .admin-action-btns { display: none; gap: 10px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+        .btn-edit { background: #ffc107; border: none; padding: 6px 15px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 15px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align: center;">👨‍👩‍👧‍👦 হাফিজ মোল্লা ফ্যামিলি আর্কাইভ</h2>
+    <h2 style="text-align: center;">👨‍👩‍👧‍👦 এক নজরে হাফিজ মোল্লা পরিবার</h2>
 
-    <div class="search-container">
-        <input type="text" id="treeSearch" list="search-suggestions" placeholder="নাম লিখে সাজেশনে ক্লিক করুন..." onchange="handleSearch(this.value)">
-        <datalist id="search-suggestions"></datalist>
+    <div class="search-box">
+        <input type="text" id="treeSearch" placeholder="সদস্যের নাম লিখুন..." oninput="liveSearch(this.value)">
+        <div id="search-results" class="search-results"></div>
     </div>
 
     <div style="text-align:center; margin-bottom:15px;">
@@ -59,31 +69,30 @@
         <button class="btn-ctrl" onclick="toggleAllTrees(false)">📁 সব আটকান</button>
     </div>
 
-    <div id="admin-panel">
+    <div id="admin-panel" style="display: none;">
         <h3 style="margin-top:0; color: var(--primary);">অ্যাডমিন কন্ট্রোল</h3>
         
         <div class="field-manager">
-            <label><b>তথ্য ফিল্ড পরিচালনা</b></label>
-            <div id="active-fields-list"></div>
+            <label><b>অতিরিক্ত তথ্য ফিল্ড যোগ/মুছুন</b></label>
+            <div id="active-fields-list"><div class="field-item"><span>পেশা</span><button onclick="removeField('পেশা')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">×</button></div><div class="field-item"><span>মোবাইল</span><button onclick="removeField('মোবাইল')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">×</button></div></div>
             <div style="display:flex; gap:5px; margin-top:10px;">
-                <input type="text" id="new-field-name" placeholder="নতুন ফিল্ডের নাম">
+                <input type="text" id="new-field-name" placeholder="যেমন: পেশা বা রক্তদল">
                 <button onclick="addNewField()" style="background:var(--success); color:white; border:none; padding:0 15px; border-radius:8px; cursor:pointer;">+</button>
             </div>
         </div>
 
         <div id="member-form">
-            <label><b>সদস্য এডিট ফরম</b></label>
-            <input type="hidden" id="edit-id">
-            <div class="input-group"><input type="number" id="mSerial" placeholder="সিরিয়াল নম্বর"></div>
+            <input type="hidden" id="edit-id" value="">
+            <div class="input-group"><input type="number" id="mSerial" placeholder="সিরিয়াল নম্বর (১, ২, ৩...)"></div>
             <div class="input-group"><input type="text" id="mName" placeholder="সদস্যের নাম"></div>
+            
             <div class="input-group">
-                <input type="text" id="mParentId" list="parent-list" placeholder="পিতা/মাতার আইডি (ID)">
-                <datalist id="parent-list"></datalist>
+                <select id="mParentId"><option value="">পিতা/মাতা নির্বাচন করুন (না থাকলে খালি রাখুন)</option><option value="28">আলী আহসান মোল্লা</option><option value="1773904705807">কামরুন নেছা আমরিন</option><option value="1773904669591">তাহমিদা</option><option value="1773904737943">নুরিন নেছা শারমিন</option><option value="29">ফাহমিদা আক্তার সিনহা</option><option value="26">বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা</option><option value="12">মরহুম আঃ কাইয়ুম মিয়া মোল্লা</option><option value="27">মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা</option><option value="2">মরহুম হাজি আঃ আহাদ মিয়া মোল্লা</option><option value="1">মরহুম হাজি আঃ হাফিজ মোল্লা</option><option value="10">মরহুম হাজি আঃআউয়াল মিয়া মোল্লা</option><option value="3">মরহুম হাজি মাহাবুব রহমান মোল্লা</option><option value="33">মরহুমা মোসাম্মৎ শাহানাজ বেগম</option><option value="1773904834719">মাসুমা আক্তার মহিমা</option><option value="1773904633399">মাহমুদা</option><option value="1773904467159">মো: শাহআলম মোল্লা</option><option value="11">মোঃ আব্দুল হাই মিয়া মোল্লা</option><option value="1773905117575">মোঃ আমজাদ মোল্লা</option><option value="1773905011871">মোঃ এরশাদ মোল্লা</option><option value="16">মোঃ কামরুজ্জামান রাজা মোল্লা</option><option value="6">মোঃ গোলাম সারোয়ার মোল্লা</option><option value="25">মোঃ জুবায়ের মোল্লা</option><option value="30">মোঃ নাহিদুর রেজা মোল্লা</option><option value="7">মোঃ বাবুল মিয়া মোল্লা</option><option value="21">মোঃ মোরাদ মিয়া মোল্লা</option><option value="8">মোঃ সাখাওয়াত হোসেন আবুল মোল্লা</option><option value="19">মোঃ সেলিম মিয়া মোল্লা</option><option value="9">মোঃ সোহেল মিয়া মোল্লা</option><option value="18">মোঃআব্দুল বাতেন মিয়া মোল্লা</option><option value="32">মোঃগোলাম মর্তুজা মিয়া মোল্লা</option><option value="1773904780615">মোঃগোলাম মোবাশির মোল্লা</option><option value="24">মোঃগোলাম রব্বানী মোল্লা</option><option value="1773905067063">মোছাম্মৎ মুন্নি বেগম</option><option value="4">মোসাম্মৎ আসমা বেগম</option><option value="20">মোসাম্মৎ ইয়াসমিন বেগম</option><option value="1773905152407">মোসাম্মৎ খুশবু বেগম</option><option value="17">মোসাম্মৎ জান্নাত-ঊন নাহার বেগম</option><option value="15">মোসাম্মৎ নুরুন নাহার বেগম</option><option value="23">মোসাম্মৎ ফেরদৌসী বেগম</option><option value="34">মোসাম্মৎ শরীফা বেগম</option><option value="22">মোসাম্মৎ হোসনে আরা বেগম</option><option value="13">মোসাম্মদ শামসুন্নাহার বেগম</option><option value="5">মোহাম্মদ মোজাম্মেল হক মোল্লা</option><option value="1773905349127">রুহুল আমিন সুমন</option><option value="31">সানজীদা আক্তার নাদিয়া</option><option value="14">হাজি মোঃ মনিরুজ্জামান মনির মোল্লা</option></select>
             </div>
+
             <div class="input-group"><input type="text" id="mRelation" placeholder="সম্পর্ক"></div>
             <div class="input-group"><input type="text" id="mPhoto" placeholder="ছবির লিঙ্ক (URL)"></div>
-            <div id="dynamic-inputs-container"></div>
-            
+            <div id="dynamic-inputs-container"><div class="input-group"><input type="text" class="dyn-input" data-field="পেশা" placeholder="পেশা"></div><div class="input-group"><input type="text" class="dyn-input" data-field="মোবাইল" placeholder="মোবাইল"></div></div>
             <div class="admin-btns">
                 <button class="btn-save" id="save-btn" onclick="addOrUpdate()">আপডেট করুন</button>
                 <button class="btn-download" onclick="downloadUpdatedFile()">ফাইল ডাউনলোড</button>
@@ -92,10 +101,746 @@
         </div>
     </div>
 
-    <div id="tree-display"></div>
+    <div id="tree-display"><details class="family-node" id="node-1" open="">
+            <summary>মরহুম হাজি আঃ হাফিজ মোল্লা <small style="color:var(--primary)">পারিবারিক প্রধান</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/gZDrkKNy/HAHM.png" onclick="openImg('https://i.ibb.co.com/gZDrkKNy/HAHM.png')">
+                    <div>
+                        <b>মরহুম হাজি আঃ হাফিজ মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-2">
+            <summary>মরহুম হাজি আঃ আহাদ মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/bj6nnQBZ/01.jpg" onclick="openImg('https://i.ibb.co.com/bj6nnQBZ/01.jpg')">
+                    <div>
+                        <b>মরহুম হাজি আঃ আহাদ মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(2)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(2)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-3">
+            <summary>মরহুম হাজি মাহাবুব রহমান মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/tp0R1w96/011.jpg" onclick="openImg('https://i.ibb.co.com/tp0R1w96/011.jpg')">
+                    <div>
+                        <b>মরহুম হাজি মাহাবুব রহমান মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(3)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(3)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-4">
+            <summary>মোসাম্মৎ আসমা বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/5WhF6mwX/012.jpg" onclick="openImg('https://i.ibb.co.com/5WhF6mwX/012.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ আসমা বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(4)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(4)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-5">
+            <summary>মোহাম্মদ মোজাম্মেল হক মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/6csZVrcD/013.jpg" onclick="openImg('https://i.ibb.co.com/6csZVrcD/013.jpg')">
+                    <div>
+                        <b>মোহাম্মদ মোজাম্মেল হক মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(5)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(5)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-6">
+            <summary>মোঃ গোলাম সারোয়ার মোল্লা <small style="color:var(--primary)">পুত্র-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/VWPRzq3D/014.jpg" onclick="openImg('https://i.ibb.co.com/VWPRzq3D/014.jpg')">
+                    <div>
+                        <b>মোঃ গোলাম সারোয়ার মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(6)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(6)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-7">
+            <summary>মোঃ বাবুল মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৪</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/jYtymMV/015.jpg" onclick="openImg('https://i.ibb.co.com/jYtymMV/015.jpg')">
+                    <div>
+                        <b>মোঃ বাবুল মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(7)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(7)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-8">
+            <summary>মোঃ সাখাওয়াত হোসেন আবুল মোল্লা <small style="color:var(--primary)">পুত্র-০৫</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/0jrQP4r0/016.jpg" onclick="openImg('https://i.ibb.co.com/0jrQP4r0/016.jpg')">
+                    <div>
+                        <b>মোঃ সাখাওয়াত হোসেন আবুল মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(8)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(8)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-9">
+            <summary>মোঃ সোহেল মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৬</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/VKxcRSw/017.jpg" onclick="openImg('https://i.ibb.co.com/VKxcRSw/017.jpg')">
+                    <div>
+                        <b>মোঃ সোহেল মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(9)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(9)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-10">
+            <summary>মরহুম হাজি আঃআউয়াল মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/KcSN6vZ3/02.jpg" onclick="openImg('https://i.ibb.co.com/KcSN6vZ3/02.jpg')">
+                    <div>
+                        <b>মরহুম হাজি আঃআউয়াল মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(10)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(10)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-11">
+            <summary>মোঃ আব্দুল হাই মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/chcZxx22/021.jpg" onclick="openImg('https://i.ibb.co.com/chcZxx22/021.jpg')">
+                    <div>
+                        <b>মোঃ আব্দুল হাই মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(11)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(11)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-12">
+            <summary>মরহুম আঃ কাইয়ুম মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/LDXr45N2/022.jpg" onclick="openImg('https://i.ibb.co.com/LDXr45N2/022.jpg')">
+                    <div>
+                        <b>মরহুম আঃ কাইয়ুম মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(12)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(12)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-13">
+            <summary>মোসাম্মদ শামসুন্নাহার বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/Vp2R3rW5/023.jpg" onclick="openImg('https://i.ibb.co.com/Vp2R3rW5/023.jpg')">
+                    <div>
+                        <b>মোসাম্মদ শামসুন্নাহার বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(13)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(13)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-14">
+            <summary>হাজি মোঃ মনিরুজ্জামান মনির মোল্লা <small style="color:var(--primary)">পুত্র-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/fYFtHjMJ/024.jpg" onclick="openImg('https://i.ibb.co.com/fYFtHjMJ/024.jpg')">
+                    <div>
+                        <b>হাজি মোঃ মনিরুজ্জামান মনির মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(14)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(14)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-15">
+            <summary>মোসাম্মৎ নুরুন নাহার বেগম <small style="color:var(--primary)">কন্যা-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/DfbBy380/025.jpg" onclick="openImg('https://i.ibb.co.com/DfbBy380/025.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ নুরুন নাহার বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(15)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(15)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-16">
+            <summary>মোঃ কামরুজ্জামান রাজা মোল্লা <small style="color:var(--primary)">পুত্র-০৪</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/VWVWLWKy/026.jpg" onclick="openImg('https://i.ibb.co.com/VWVWLWKy/026.jpg')">
+                    <div>
+                        <b>মোঃ কামরুজ্জামান রাজা মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(16)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(16)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-17">
+            <summary>মোসাম্মৎ জান্নাত-ঊন নাহার বেগম <small style="color:var(--primary)">কন্যা-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/5P3SV7T/027.jpg" onclick="openImg('https://i.ibb.co.com/5P3SV7T/027.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ জান্নাত-ঊন নাহার বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(17)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(17)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-18">
+            <summary>মোঃআব্দুল বাতেন মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/67j8zrMt/03.jpg" onclick="openImg('https://i.ibb.co.com/67j8zrMt/03.jpg')">
+                    <div>
+                        <b>মোঃআব্দুল বাতেন মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(18)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(18)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-19">
+            <summary>মোঃ সেলিম মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/vGYMWvY/031.jpg" onclick="openImg('https://i.ibb.co.com/vGYMWvY/031.jpg')">
+                    <div>
+                        <b>মোঃ সেলিম মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(19)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(19)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-20">
+            <summary>মোসাম্মৎ ইয়াসমিন বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/7dDC2jQj/032.jpg" onclick="openImg('https://i.ibb.co.com/7dDC2jQj/032.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ ইয়াসমিন বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(20)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(20)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-21">
+            <summary>মোঃ মোরাদ মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/60qKsyrp/033.jpg" onclick="openImg('https://i.ibb.co.com/60qKsyrp/033.jpg')">
+                    <div>
+                        <b>মোঃ মোরাদ মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(21)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(21)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-22">
+            <summary>মোসাম্মৎ হোসনে আরা বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/wFRchNBB/04.jpg" onclick="openImg('https://i.ibb.co.com/wFRchNBB/04.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ হোসনে আরা বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(22)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(22)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-23">
+            <summary>মোসাম্মৎ ফেরদৌসী বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/F4cDBk00/041.jpg" onclick="openImg('https://i.ibb.co.com/F4cDBk00/041.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ ফেরদৌসী বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(23)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(23)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-24">
+            <summary>মোঃগোলাম রব্বানী মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/TBM20Pr5/042.jpg" onclick="openImg('https://i.ibb.co.com/TBM20Pr5/042.jpg')">
+                    <div>
+                        <b>মোঃগোলাম রব্বানী মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(24)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(24)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-25">
+            <summary>মোঃ জুবায়ের মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/WNVNgsJh/043.jpg" onclick="openImg('https://i.ibb.co.com/WNVNgsJh/043.jpg')">
+                    <div>
+                        <b>মোঃ জুবায়ের মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(25)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(25)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-26">
+            <summary>বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৪</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/nNGdjHvF/05.jpg" onclick="openImg('https://i.ibb.co.com/nNGdjHvF/05.jpg')">
+                    <div>
+                        <b>বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা</b><br>
+                        <small><b>তথ্য:</b> গেজেট নং ২৬৪৫</small><br>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(26)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(26)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-1773904467159">
+            <summary>মো: শাহআলম মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/0RhQW7Dn/051.jpg" onclick="openImg('https://i.ibb.co.com/0RhQW7Dn/051.jpg')">
+                    <div>
+                        <b>মো: শাহআলম মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904467159)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904467159)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904633399">
+            <summary>মাহমুদা <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/jvD98vyM/052.jpg" onclick="openImg('https://i.ibb.co.com/jvD98vyM/052.jpg')">
+                    <div>
+                        <b>মাহমুদা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904633399)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904633399)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904669591">
+            <summary>তাহমিদা <small style="color:var(--primary)">কন্যা-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/C337VhGn/053.jpg" onclick="openImg('https://i.ibb.co.com/C337VhGn/053.jpg')">
+                    <div>
+                        <b>তাহমিদা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904669591)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904669591)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904705807">
+            <summary>কামরুন নেছা আমরিন <small style="color:var(--primary)">কন্যা-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/chfQt2Lm/054.jpg" onclick="openImg('https://i.ibb.co.com/chfQt2Lm/054.jpg')">
+                    <div>
+                        <b>কামরুন নেছা আমরিন</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904705807)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904705807)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904737943">
+            <summary>নুরিন নেছা শারমিন <small style="color:var(--primary)">কন্যা-০৪</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/HpMsWX1C/055.jpg" onclick="openImg('https://i.ibb.co.com/HpMsWX1C/055.jpg')">
+                    <div>
+                        <b>নুরিন নেছা শারমিন</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904737943)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904737943)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904780615">
+            <summary>মোঃগোলাম মোবাশির মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/wr7NWfRd/056.jpg" onclick="openImg('https://i.ibb.co.com/wr7NWfRd/056.jpg')">
+                    <div>
+                        <b>মোঃগোলাম মোবাশির মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904780615)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904780615)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773904834719">
+            <summary>মাসুমা আক্তার মহিমা <small style="color:var(--primary)">কন্যা-০৫</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/mVDLXswJ/057.jpg" onclick="openImg('https://i.ibb.co.com/mVDLXswJ/057.jpg')">
+                    <div>
+                        <b>মাসুমা আক্তার মহিমা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773904834719)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773904834719)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-27">
+            <summary>মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৫</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/zhN6D7rr/06.jpg" onclick="openImg('https://i.ibb.co.com/zhN6D7rr/06.jpg')">
+                    <div>
+                        <b>মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(27)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(27)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-28">
+            <summary>আলী আহসান মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/CTX35tk/061.jpg" onclick="openImg('https://i.ibb.co.com/CTX35tk/061.jpg')">
+                    <div>
+                        <b>আলী আহসান মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(28)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(28)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-29">
+            <summary>ফাহমিদা আক্তার সিনহা <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/0pdZbz9G/062.jpg" onclick="openImg('https://i.ibb.co.com/0pdZbz9G/062.jpg')">
+                    <div>
+                        <b>ফাহমিদা আক্তার সিনহা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(29)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(29)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-30">
+            <summary>মোঃ নাহিদুর রেজা মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/Mkh4sxQd/063.jpg" onclick="openImg('https://i.ibb.co.com/Mkh4sxQd/063.jpg')">
+                    <div>
+                        <b>মোঃ নাহিদুর রেজা মোল্লা</b><br>
+                        <small><b>পেশা:</b> ওয়েব ডেভেলপার</small><br>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(30)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(30)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-31">
+            <summary>সানজীদা আক্তার নাদিয়া <small style="color:var(--primary)">কন্যা-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/HLdYXbsq/064.jpg" onclick="openImg('https://i.ibb.co.com/HLdYXbsq/064.jpg')">
+                    <div>
+                        <b>সানজীদা আক্তার নাদিয়া</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(31)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(31)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-32">
+            <summary>মোঃগোলাম মর্তুজা মিয়া মোল্লা <small style="color:var(--primary)">পুত্র-০৬</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/k2N99SFv/07.jpg" onclick="openImg('https://i.ibb.co.com/k2N99SFv/07.jpg')">
+                    <div>
+                        <b>মোঃগোলাম মর্তুজা মিয়া মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(32)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(32)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-1773905011871">
+            <summary>মোঃ এরশাদ মোল্লা <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/hRj1t536/071.jpg" onclick="openImg('https://i.ibb.co.com/hRj1t536/071.jpg')">
+                    <div>
+                        <b>মোঃ এরশাদ মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773905011871)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773905011871)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773905067063">
+            <summary>মোছাম্মৎ মুন্নি বেগম <small style="color:var(--primary)">কন্যা-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/ds6n64rh/072.jpg" onclick="openImg('https://i.ibb.co.com/ds6n64rh/072.jpg')">
+                    <div>
+                        <b>মোছাম্মৎ মুন্নি বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773905067063)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773905067063)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773905117575">
+            <summary>মোঃ আমজাদ মোল্লা <small style="color:var(--primary)">পুত্র-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/chYGrtrY/073.jpg" onclick="openImg('https://i.ibb.co.com/chYGrtrY/073.jpg')">
+                    <div>
+                        <b>মোঃ আমজাদ মোল্লা</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773905117575)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773905117575)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details><details class="family-node" id="node-1773905152407">
+            <summary>মোসাম্মৎ খুশবু বেগম <small style="color:var(--primary)">কন্যা-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/8DT3pZvr/074.jpg" onclick="openImg('https://i.ibb.co.com/8DT3pZvr/074.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ খুশবু বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773905152407)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773905152407)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-33">
+            <summary>মরহুমা মোসাম্মৎ শাহানাজ বেগম <small style="color:var(--primary)">কন্যা-০২</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/ks1Kcj38/08.jpg" onclick="openImg('https://i.ibb.co.com/ks1Kcj38/08.jpg')">
+                    <div>
+                        <b>মরহুমা মোসাম্মৎ শাহানাজ বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(33)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(33)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"><details class="family-node" id="node-1773905349127">
+            <summary>রুহুল আমিন সুমন <small style="color:var(--primary)">পুত্র-০১</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/G345XxfD/081.jpg" onclick="openImg('https://i.ibb.co.com/G345XxfD/081.jpg')">
+                    <div>
+                        <b>রুহুল আমিন সুমন</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(1773905349127)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(1773905349127)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details><details class="family-node" id="node-34">
+            <summary>মোসাম্মৎ শরীফা বেগম <small style="color:var(--primary)">কন্যা-০৩</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="https://i.ibb.co.com/3mLjwRnx/09.jpg" onclick="openImg('https://i.ibb.co.com/3mLjwRnx/09.jpg')">
+                    <div>
+                        <b>মোসাম্মৎ শরীফা বেগম</b><br>
+                        <small>অতিরিক্ত তথ্য নেই</small>
+                        <div class="admin-action-btns" style="display: none">
+                            <button class="btn-edit" onclick="startEdit(34)">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(34)">মুছুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nested"></div>
+        </details></div>
+        </details></div>
 </div>
 
-<div id="login-modal">
+<div id="login-modal" style="display: none;">
     <div class="login-box">
         <h3>অ্যাডমিন লগইন</h3>
         <input type="password" id="adminPass" placeholder="পাসওয়ার্ড">
@@ -104,89 +849,484 @@
     </div>
 </div>
 
-<button id="admin-lock" onclick="showLogin()">🔒</button>
-<div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
+<button id="admin-lock" onclick="showLogin()" style="display: flex;">🔒</button>
+<div id="imgModal" onclick="this.style.display='none'" style="display: none;"><img id="modalImg" src="https://ibb.co.com/C3hWXc1w"></div>
 
-<footer>Developed By: Md Nahidur Reza &copy; 2026</footer>
+<footer>Developed By: Md Nahidur Reza © 2026 | Version: 2.8.3</footer>
 
 <script>
 // --- DATA SECTION ---
 let familyData = [
-  { "id": 1, "parentId": null, "name": "মরহুম হাজি আঃ হাফিজ মোল্লা", "relation": "মূল পুরুষ", "img": "https://i.ibb.co.com/gZDrkKNy/HAHM.png", "extra": {}, "serial": 1 },
-  { "id": 2, "parentId": 1, "name": "মরহুম হাজি আঃ আহাদ মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/bj6nnQBZ/01.jpg", "extra": {}, "serial": 1 },
-  { "id": 3, "parentId": 2, "name": "মরহুম হাজি মাহাবুব রহমান মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/tp0R1w96/011.jpg", "extra": {}, "serial": 1 },
-  { "id": 4, "parentId": 2, "name": "মোসাম্মৎ আসমা বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/5WhF6mwX/012.jpg", "extra": {}, "serial": 2 },
-  { "id": 5, "parentId": 2, "name": "মোহাম্মদ মোজাম্মেল হক মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/6csZVrcD/013.jpg", "extra": {}, "serial": 3 },
-  { "id": 6, "parentId": 2, "name": "মোঃ গোলাম সারোয়ার মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/VWPRzq3D/014.jpg", "extra": {}, "serial": 4 },
-  { "id": 7, "parentId": 2, "name": "মোঃ বাবুল মিয়া মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/jYtymMV/015.jpg", "extra": {}, "serial": 5 },
-  { "id": 8, "parentId": 2, "name": "মোঃ সাখাওয়াত হোসেন আবুল মোল্লা", "relation": "পুত্র-০৫", "img": "https://i.ibb.co.com/0jrQP4r0/016.jpg", "extra": {}, "serial": 6 },
-  { "id": 9, "parentId": 2, "name": "মোঃ সোহেল মিয়া মোল্লা", "relation": "পুত্র-০৬", "img": "https://i.ibb.co.com/VKxcRSw/017.jpg", "extra": {}, "serial": 7 },
-  { "id": 10, "parentId": 1, "name": "মরহুম হাজি আঃআউয়াল মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/KcSN6vZ3/02.jpg", "extra": {}, "serial": 2 },
-  { "id": 11, "parentId": 10, "name": "মোঃ আব্দুল হাই মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/chcZxx22/021.jpg", "extra": {}, "serial": 1 },
-  { "id": 12, "parentId": 10, "name": "মরহুম আঃ কাইয়ুম মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/LDXr45N2/022.jpg", "extra": {}, "serial": 2 },
-  { "id": 13, "parentId": 10, "name": "মোসাম্মদ শামসুন্নাহার বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/Vp2R3rW5/023.jpg", "extra": {}, "serial": 3 },
-  { "id": 14, "parentId": 10, "name": "হাজি মোঃ মনিরুজ্জামান মনির মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/fYFtHjMJ/024.jpg", "extra": {}, "serial": 4 },
-  { "id": 15, "parentId": 10, "name": "মোসাম্মৎ নুরুন নাহার বেগম", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/DfbBy380/025.jpg", "extra": {}, "serial": 5 },
-  { "id": 16, "parentId": 10, "name": "মোঃ কামরুজ্জামান রাজা মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/VWVWLWKy/026.jpg", "extra": {}, "serial": 6 },
-  { "id": 17, "parentId": 10, "name": "মোসাম্মৎ জান্নাত-ঊন নাহার বেগম", "relation": "কন্যা-০৩", "img": "https://i.ibb.co.com/5P3SV7T/027.jpg", "extra": {}, "serial": 7 },
-  { "id": 18, "parentId": 1, "name": "মোঃআব্দুল বাতেন মিয়া মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/67j8zrMt/03.jpg", "extra": {}, "serial": 3 },
-  { "id": 19, "parentId": 18, "name": "মোঃ সেলিম মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/vGYMWvY/031.jpg", "extra": {}, "serial": 1 },
-  { "id": 20, "parentId": 18, "name": "মোসাম্মৎ ইয়াসমিন বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/7dDC2jQj/032.jpg", "extra": {}, "serial": 2 },
-  { "id": 21, "parentId": 18, "name": "মোঃ মোরাদ মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/60qKsyrp/033.jpg", "extra": {}, "serial": 3 },
-  { "id": 22, "parentId": 1, "name": "মোসাম্মৎ হোসনে আরা বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/wFRchNBB/04.jpg", "extra": {}, "serial": 4 },
-  { "id": 23, "parentId": 22, "name": "মোসাম্মৎ ফেরদৌসী বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/F4cDBk00/041.jpg", "extra": {}, "serial": 1 },
-  { "id": 24, "parentId": 22, "name": "মোঃগোলাম রব্বানী মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/TBM20Pr5/042.jpg", "extra": {}, "serial": 2 },
-  { "id": 25, "parentId": 22, "name": "মোঃ জুবায়ের মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/WNVNgsJh/043.jpg", "extra": {}, "serial": 3 },
-  { "id": 26, "parentId": 1, "name": "বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/nNGdjHvF/05.jpg", "extra": {"তথ্য": "গেজেট নং ২৬৪৫"}, "serial": 5 },
-  { "id": 27, "parentId": 1, "name": "মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা", "relation": "পুত্র-০৫", "img": "https://i.ibb.co.com/zhN6D7rr/06.jpg", "extra": {}, "serial": 6 },
-  { "id": 28, "parentId": 27, "name": "আলী আহসান", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/CTX35tk/061.jpg", "extra": {}, "serial": 1 },
-  { "id": 29, "parentId": 27, "name": "ফাহমিদা আক্তার সিনহা", "relation": "কন্যা-০১", "img": "https://via.placeholder.com/65", "extra": {}, "serial": 2 },
-  { "id": 30, "parentId": 27, "name": "মোঃ নাহিদুর রেজা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/Mkh4sxQd/063.jpg", "extra": {"পেশা": "ওয়েব ডেভেলপার"}, "serial": 3 },
-  { "id": 31, "parentId": 27, "name": "সানজীদা আক্তার নাদিয়া", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/HLdYXbsq/064.jpg", "extra": {}, "serial": 4 },
-  { "id": 32, "parentId": 1, "name": "মোঃগোলাম মর্তুজা মিয়া মোল্লা", "relation": "পুত্র-০৬", "img": "https://i.ibb.co.com/k2N99SFv/07.jpg", "extra": {}, "serial": 7 },
-  { "id": 33, "parentId": 1, "name": "মরহুমা মোসাম্মৎ শাহানাজ বেগম", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/ks1Kcj38/08.jpg", "extra": {}, "serial": 8 },
-  { "id": 34, "parentId": 1, "name": "মোসাম্মৎ শরীফা বেগম", "relation": "কন্যা-০৩", "img": "https://i.ibb.co.com/3mLjwRnx/09.jpg", "extra": {}, "serial": 9 }
+  {
+    "id": 1,
+    "parentId": null,
+    "serial": 1,
+    "name": "মরহুম হাজি আঃ হাফিজ মোল্লা",
+    "relation": "পারিবারিক প্রধান",
+    "img": "https://i.ibb.co.com/gZDrkKNy/HAHM.png",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 2,
+    "parentId": 1,
+    "name": "মরহুম হাজি আঃ আহাদ মিয়া মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/bj6nnQBZ/01.jpg",
+    "extra": {},
+    "serial": 1
+  },
+  {
+    "id": 3,
+    "parentId": 2,
+    "name": "মরহুম হাজি মাহাবুব রহমান মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/tp0R1w96/011.jpg",
+    "extra": {},
+    "serial": 1
+  },
+  {
+    "id": 4,
+    "parentId": 2,
+    "name": "মোসাম্মৎ আসমা বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/5WhF6mwX/012.jpg",
+    "extra": {},
+    "serial": 2
+  },
+  {
+    "id": 5,
+    "parentId": 2,
+    "name": "মোহাম্মদ মোজাম্মেল হক মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/6csZVrcD/013.jpg",
+    "extra": {},
+    "serial": 3
+  },
+  {
+    "id": 6,
+    "parentId": 2,
+    "name": "মোঃ গোলাম সারোয়ার মোল্লা",
+    "relation": "পুত্র-০৩",
+    "img": "https://i.ibb.co.com/VWPRzq3D/014.jpg",
+    "extra": {},
+    "serial": 4
+  },
+  {
+    "id": 7,
+    "parentId": 2,
+    "name": "মোঃ বাবুল মিয়া মোল্লা",
+    "relation": "পুত্র-০৪",
+    "img": "https://i.ibb.co.com/jYtymMV/015.jpg",
+    "extra": {},
+    "serial": 5
+  },
+  {
+    "id": 8,
+    "parentId": 2,
+    "name": "মোঃ সাখাওয়াত হোসেন আবুল মোল্লা",
+    "relation": "পুত্র-০৫",
+    "img": "https://i.ibb.co.com/0jrQP4r0/016.jpg",
+    "extra": {},
+    "serial": 6
+  },
+  {
+    "id": 9,
+    "parentId": 2,
+    "name": "মোঃ সোহেল মিয়া মোল্লা",
+    "relation": "পুত্র-০৬",
+    "img": "https://i.ibb.co.com/VKxcRSw/017.jpg",
+    "extra": {},
+    "serial": 7
+  },
+  {
+    "id": 10,
+    "parentId": 1,
+    "name": "মরহুম হাজি আঃআউয়াল মিয়া মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/KcSN6vZ3/02.jpg",
+    "extra": {},
+    "serial": 2
+  },
+  {
+    "id": 11,
+    "parentId": 10,
+    "name": "মোঃ আব্দুল হাই মিয়া মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/chcZxx22/021.jpg",
+    "extra": {},
+    "serial": 1
+  },
+  {
+    "id": 12,
+    "parentId": 10,
+    "name": "মরহুম আঃ কাইয়ুম মিয়া মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/LDXr45N2/022.jpg",
+    "extra": {},
+    "serial": 2
+  },
+  {
+    "id": 13,
+    "parentId": 10,
+    "name": "মোসাম্মদ শামসুন্নাহার বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/Vp2R3rW5/023.jpg",
+    "extra": {},
+    "serial": 3
+  },
+  {
+    "id": 14,
+    "parentId": 10,
+    "name": "হাজি মোঃ মনিরুজ্জামান মনির মোল্লা",
+    "relation": "পুত্র-০৩",
+    "img": "https://i.ibb.co.com/fYFtHjMJ/024.jpg",
+    "extra": {},
+    "serial": 4
+  },
+  {
+    "id": 15,
+    "parentId": 10,
+    "name": "মোসাম্মৎ নুরুন নাহার বেগম",
+    "relation": "কন্যা-০২",
+    "img": "https://i.ibb.co.com/DfbBy380/025.jpg",
+    "extra": {},
+    "serial": 5
+  },
+  {
+    "id": 16,
+    "parentId": 10,
+    "name": "মোঃ কামরুজ্জামান রাজা মোল্লা",
+    "relation": "পুত্র-০৪",
+    "img": "https://i.ibb.co.com/VWVWLWKy/026.jpg",
+    "extra": {},
+    "serial": 6
+  },
+  {
+    "id": 17,
+    "parentId": 10,
+    "name": "মোসাম্মৎ জান্নাত-ঊন নাহার বেগম",
+    "relation": "কন্যা-০৩",
+    "img": "https://i.ibb.co.com/5P3SV7T/027.jpg",
+    "extra": {},
+    "serial": 7
+  },
+  {
+    "id": 18,
+    "parentId": 1,
+    "name": "মোঃআব্দুল বাতেন মিয়া মোল্লা",
+    "relation": "পুত্র-০৩",
+    "img": "https://i.ibb.co.com/67j8zrMt/03.jpg",
+    "extra": {},
+    "serial": 3
+  },
+  {
+    "id": 19,
+    "parentId": 18,
+    "name": "মোঃ সেলিম মিয়া মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/vGYMWvY/031.jpg",
+    "extra": {},
+    "serial": 1
+  },
+  {
+    "id": 20,
+    "parentId": 18,
+    "name": "মোসাম্মৎ ইয়াসমিন বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/7dDC2jQj/032.jpg",
+    "extra": {},
+    "serial": 2
+  },
+  {
+    "id": 21,
+    "parentId": 18,
+    "name": "মোঃ মোরাদ মিয়া মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/60qKsyrp/033.jpg",
+    "extra": {},
+    "serial": 3
+  },
+  {
+    "id": 22,
+    "parentId": 1,
+    "name": "মোসাম্মৎ হোসনে আরা বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/wFRchNBB/04.jpg",
+    "extra": {},
+    "serial": 4
+  },
+  {
+    "id": 23,
+    "parentId": 22,
+    "name": "মোসাম্মৎ ফেরদৌসী বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/F4cDBk00/041.jpg",
+    "extra": {},
+    "serial": 1
+  },
+  {
+    "id": 24,
+    "parentId": 22,
+    "name": "মোঃগোলাম রব্বানী মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/TBM20Pr5/042.jpg",
+    "extra": {},
+    "serial": 2
+  },
+  {
+    "id": 25,
+    "parentId": 22,
+    "name": "মোঃ জুবায়ের মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/WNVNgsJh/043.jpg",
+    "extra": {},
+    "serial": 3
+  },
+  {
+    "id": 26,
+    "parentId": 1,
+    "name": "বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা",
+    "relation": "পুত্র-০৪",
+    "img": "https://i.ibb.co.com/nNGdjHvF/05.jpg",
+    "extra": {
+      "তথ্য": "গেজেট নং ২৬৪৫"
+    },
+    "serial": 5
+  },
+  {
+    "id": 27,
+    "parentId": 1,
+    "name": "মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা",
+    "relation": "পুত্র-০৫",
+    "img": "https://i.ibb.co.com/zhN6D7rr/06.jpg",
+    "extra": {},
+    "serial": 6
+  },
+  {
+    "id": 28,
+    "parentId": 27,
+    "serial": 1,
+    "name": "আলী আহসান মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/CTX35tk/061.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 29,
+    "parentId": 27,
+    "serial": 2,
+    "name": "ফাহমিদা আক্তার সিনহা",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/0pdZbz9G/062.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 30,
+    "parentId": 27,
+    "serial": 3,
+    "name": "মোঃ নাহিদুর রেজা মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/Mkh4sxQd/063.jpg",
+    "extra": {
+      "পেশা": "ওয়েব ডেভেলপার",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 31,
+    "parentId": 27,
+    "name": "সানজীদা আক্তার নাদিয়া",
+    "relation": "কন্যা-০২",
+    "img": "https://i.ibb.co.com/HLdYXbsq/064.jpg",
+    "extra": {},
+    "serial": 4
+  },
+  {
+    "id": 32,
+    "parentId": 1,
+    "name": "মোঃগোলাম মর্তুজা মিয়া মোল্লা",
+    "relation": "পুত্র-০৬",
+    "img": "https://i.ibb.co.com/k2N99SFv/07.jpg",
+    "extra": {},
+    "serial": 7
+  },
+  {
+    "id": 33,
+    "parentId": 1,
+    "name": "মরহুমা মোসাম্মৎ শাহানাজ বেগম",
+    "relation": "কন্যা-০২",
+    "img": "https://i.ibb.co.com/ks1Kcj38/08.jpg",
+    "extra": {},
+    "serial": 8
+  },
+  {
+    "id": 34,
+    "parentId": 1,
+    "name": "মোসাম্মৎ শরীফা বেগম",
+    "relation": "কন্যা-০৩",
+    "img": "https://i.ibb.co.com/3mLjwRnx/09.jpg",
+    "extra": {},
+    "serial": 9
+  },
+  {
+    "id": 1773904467159,
+    "parentId": 26,
+    "serial": 1,
+    "name": "মো: শাহআলম মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/0RhQW7Dn/051.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904633399,
+    "parentId": 26,
+    "serial": 2,
+    "name": "মাহমুদা",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/jvD98vyM/052.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904669591,
+    "parentId": 26,
+    "serial": 3,
+    "name": "তাহমিদা",
+    "relation": "কন্যা-০২",
+    "img": "https://i.ibb.co.com/C337VhGn/053.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904705807,
+    "parentId": 26,
+    "serial": 4,
+    "name": "কামরুন নেছা আমরিন",
+    "relation": "কন্যা-০৩",
+    "img": "https://i.ibb.co.com/chfQt2Lm/054.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904737943,
+    "parentId": 26,
+    "serial": 5,
+    "name": "নুরিন নেছা শারমিন",
+    "relation": "কন্যা-০৪",
+    "img": "https://i.ibb.co.com/HpMsWX1C/055.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904780615,
+    "parentId": 26,
+    "serial": 6,
+    "name": "মোঃগোলাম মোবাশির মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/wr7NWfRd/056.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773904834719,
+    "parentId": 26,
+    "serial": 7,
+    "name": "মাসুমা আক্তার মহিমা",
+    "relation": "কন্যা-০৫",
+    "img": "https://i.ibb.co.com/mVDLXswJ/057.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773905011871,
+    "parentId": 32,
+    "serial": 1,
+    "name": "মোঃ এরশাদ মোল্লা",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/hRj1t536/071.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773905067063,
+    "parentId": 32,
+    "serial": 2,
+    "name": "মোছাম্মৎ মুন্নি বেগম",
+    "relation": "কন্যা-০১",
+    "img": "https://i.ibb.co.com/ds6n64rh/072.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773905117575,
+    "parentId": 32,
+    "serial": 3,
+    "name": "মোঃ আমজাদ মোল্লা",
+    "relation": "পুত্র-০২",
+    "img": "https://i.ibb.co.com/chYGrtrY/073.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773905152407,
+    "parentId": 32,
+    "serial": 4,
+    "name": "মোসাম্মৎ খুশবু বেগম",
+    "relation": "কন্যা-০২",
+    "img": "https://i.ibb.co.com/8DT3pZvr/074.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  },
+  {
+    "id": 1773905349127,
+    "parentId": 33,
+    "serial": 1,
+    "name": "রুহুল আমিন সুমন",
+    "relation": "পুত্র-০১",
+    "img": "https://i.ibb.co.com/G345XxfD/081.jpg",
+    "extra": {
+      "পেশা": "",
+      "মোবাইল": ""
+    }
+  }
 ];
 
-let dynamicFields = ["পেশা", "মোবাইল", "ঠিকানা"];
+let dynamicFields = ["পেশা","মোবাইল"];
 let isAdmin = false;
 
-// --- CORE FUNCTIONS ---
-function renderFieldManager() {
-    const list = document.getElementById('active-fields-list');
-    list.innerHTML = '';
-    dynamicFields.forEach(field => {
-        list.innerHTML += `<div class="field-item"><span>${field}</span><button onclick="removeField('${field}')" style="color:var(--danger); border:none; background:none; cursor:pointer;">×</button></div>`;
-    });
-    renderDynamicInputs();
-}
-
-function addNewField() {
-    const name = document.getElementById('new-field-name').value.trim();
-    if(name && !dynamicFields.includes(name)) {
-        dynamicFields.push(name);
-        document.getElementById('new-field-name').value = '';
-        renderFieldManager();
-    }
-}
-
-function removeField(name) {
-    if(confirm(`'${name}' মুছে ফেললে সবার থেকে এই তথ্য মুছে যাবে। নিশ্চিত?`)) {
-        dynamicFields = dynamicFields.filter(f => f !== name);
-        familyData.forEach(m => { if(m.extra) delete m.extra[name]; });
-        renderFieldManager();
-        refresh();
-    }
-}
-
-function renderDynamicInputs() {
-    const container = document.getElementById('dynamic-inputs-container');
-    container.innerHTML = '';
-    dynamicFields.forEach(f => {
-        container.innerHTML += `<div class="input-group"><input type="text" class="dyn-input" data-field="${f}" placeholder="${f}"></div>`;
-    });
-}
-
+// --- RENDER FUNCTIONS ---
 function renderTree(parentId, container) {
     const children = familyData
         .filter(m => m.parentId == parentId)
@@ -195,6 +1335,7 @@ function renderTree(parentId, container) {
     children.forEach(m => {
         const details = document.createElement('details');
         details.className = 'family-node';
+        details.id = `node-${m.id}`;
         if (parentId === null) details.open = true;
 
         let extraHtml = '';
@@ -210,13 +1351,13 @@ function renderTree(parentId, container) {
                 <div class="profile">
                     <img src="${m.img || 'https://via.placeholder.com/65'}" onclick="openImg('${m.img}')">
                     <div>
-                        <b>${m.name}</b> (ID: ${m.id})<br>
+                        <b>${m.name}</b><br>
                         ${extraHtml || '<small>অতিরিক্ত তথ্য নেই</small>'}
+                        <div class="admin-action-btns" style="display: ${isAdmin ? 'flex' : 'none'}">
+                            <button class="btn-edit" onclick="startEdit(${m.id})">এডিট</button>
+                            <button class="btn-delete" onclick="deleteMember(${m.id})">মুছুন</button>
+                        </div>
                     </div>
-                </div>
-                <div style="display: ${isAdmin ? 'flex' : 'none'}; gap:10px; margin-top:10px;">
-                    <button onclick="startEdit(${m.id})" style="background:#ffc107; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">এডিট</button>
-                    <button onclick="deleteMember(${m.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">ডিলিট</button>
                 </div>
             </div>
             <div class="nested"></div>
@@ -228,47 +1369,83 @@ function renderTree(parentId, container) {
 
 function refresh() {
     const display = document.getElementById('tree-display');
+    if(!display) return;
     display.innerHTML = '';
     renderTree(null, display);
+    renderFieldManager();
+    updateParentSelector(); // ডপ-ডাউন আপডেট করা
+}
+
+// --- NEW: PARENT SELECTOR UPDATE ---
+function updateParentSelector() {
+    const select = document.getElementById('mParentId');
+    if(!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">পিতা/মাতা নির্বাচন করুন (না থাকলে খালি রাখুন)</option>';
     
-    const sl = document.getElementById('search-suggestions');
-    const pl = document.getElementById('parent-list');
-    sl.innerHTML = ''; pl.innerHTML = '';
-    familyData.forEach(m => {
-        sl.innerHTML += `<option value="${m.name}">`;
-        pl.innerHTML += `<option value="${m.id}"> (${m.name})`;
+    // নাম অনুসারে সাজিয়ে লিস্ট তৈরি
+    [...familyData].sort((a,b) => a.name.localeCompare(b.name, 'bn')).forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.innerText = m.name;
+        select.appendChild(opt);
+    });
+    select.value = currentVal;
+}
+
+// --- FIELD MANAGEMENT ---
+function renderFieldManager() {
+    const list = document.getElementById('active-fields-list');
+    if(!list) return;
+    list.innerHTML = '';
+    dynamicFields.forEach(f => {
+        list.innerHTML += `<div class="field-item"><span>${f}</span><button onclick="removeField('${f}')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">×</button></div>`;
+    });
+    renderDynamicInputs();
+}
+
+function addNewField() {
+    const name = document.getElementById('new-field-name').value.trim();
+    if(name && !dynamicFields.includes(name)) {
+        dynamicFields.push(name);
+        document.getElementById('new-field-name').value = '';
+        refresh();
+    }
+}
+
+function removeField(name) {
+    if(confirm(`'${name}' ফিল্ডটি মুছে ফেললে সবার প্রোফাইল থেকে এই তথ্য মুছে যাবে। নিশ্চিত?`)) {
+        dynamicFields = dynamicFields.filter(f => f !== name);
+        familyData.forEach(m => { if(m.extra) delete m.extra[name]; });
+        refresh();
+    }
+}
+
+function renderDynamicInputs() {
+    const container = document.getElementById('dynamic-inputs-container');
+    if(!container) return;
+    container.innerHTML = '';
+    dynamicFields.forEach(f => {
+        container.innerHTML += `<div class="input-group"><input type="text" class="dyn-input" data-field="${f}" placeholder="${f}"></div>`;
     });
 }
 
-function handleSearch(val) {
-    const searchVal = val.trim().toLowerCase();
-    if (!searchVal) return;
-    document.querySelectorAll('.family-node').forEach(n => n.classList.remove('highlight-node'));
-    let found = false;
-    document.querySelectorAll('.family-node').forEach(node => {
-        if (node.querySelector('summary').innerText.toLowerCase().includes(searchVal)) {
-            node.open = true;
-            node.classList.add('highlight-node');
-            let p = node.parentElement.closest('details');
-            while(p) { p.open = true; p = p.parentElement.closest('details'); }
-            if (!found) { node.scrollIntoView({ behavior: 'smooth', block: 'center' }); found = true; }
-        }
-    });
-}
-
+// --- DATA ACTIONS ---
 function addOrUpdate() {
     const id = document.getElementById('edit-id').value;
     const name = document.getElementById('mName').value;
-    if(!name) return alert("নাম দিন");
+    if(!name) return alert("দয়া করে নাম দিন");
 
     let extraData = {};
-    document.querySelectorAll('.dyn-input').forEach(input => {
-        extraData[input.dataset.field] = input.value;
+    document.querySelectorAll('.dyn-input').forEach(i => {
+        extraData[i.dataset.field] = i.value;
     });
+
+    const parentIdVal = document.getElementById('mParentId').value;
 
     const member = {
         id: id ? parseInt(id) : Date.now(),
-        parentId: document.getElementById('mParentId').value ? parseInt(document.getElementById('mParentId').value) : null,
+        parentId: parentIdVal ? parseInt(parentIdVal) : null,
         serial: parseInt(document.getElementById('mSerial').value) || 0,
         name: name,
         relation: document.getElementById('mRelation').value,
@@ -277,14 +1454,13 @@ function addOrUpdate() {
     };
 
     if(id) {
-        const index = familyData.findIndex(m => m.id == id);
-        familyData[index] = member;
+        const idx = familyData.findIndex(m => m.id == id);
+        familyData[idx] = member;
     } else {
         familyData.push(member);
     }
-    
     refresh(); clearForm();
-    alert("সফলভাবে আপডেট হয়েছে! স্থায়ীভাবে সেভ করতে 'ফাইল ডাউনলোড' বাটনে ক্লিক করে গিটহাবে আপলোড করুন।");
+    alert("সফলভাবে আপডেট হয়েছে!");
 }
 
 function startEdit(id) {
@@ -295,58 +1471,102 @@ function startEdit(id) {
     document.getElementById('mParentId').value = m.parentId || '';
     document.getElementById('mRelation').value = m.relation;
     document.getElementById('mPhoto').value = m.img;
-    document.querySelectorAll('.dyn-input').forEach(input => {
-        input.value = (m.extra && m.extra[input.dataset.field]) ? m.extra[input.dataset.field] : '';
+    
+    document.querySelectorAll('.dyn-input').forEach(i => {
+        i.value = (m.extra && m.extra[i.dataset.field]) ? m.extra[i.dataset.field] : '';
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function deleteMember(id) {
-    if(confirm("নিশ্চিত মুছতে চান?")) {
+    if(confirm("আপনি কি নিশ্চিতভাবে এই সদস্যকে মুছে ফেলতে চান?")) {
         familyData = familyData.filter(m => m.id !== id);
         refresh();
     }
 }
 
-function downloadUpdatedFile() {
-    let html = document.documentElement.outerHTML;
-    const dataStr = `let familyData = ${JSON.stringify(familyData, null, 2)};`;
-    const fieldsStr = `let dynamicFields = ${JSON.stringify(dynamicFields)};`;
-    
-    html = html.replace(/let familyData = \[[\s\S]*?\];/, dataStr);
-    html = html.replace(/let dynamicFields = \[[\s\S]*?\];/, fieldsStr);
-    html = html.replace(/isAdmin = true/g, 'isAdmin = false'); // সেভ হওয়ার সময় অ্যাডমিন বন্ধ থাকবে
-    
-    const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = "index.html";
-    a.click();
+// --- SEARCH ---
+function liveSearch(val) {
+    const resBox = document.getElementById('search-results');
+    resBox.innerHTML = '';
+    if (!val.trim()) { resBox.style.display = 'none'; return; }
+    const filtered = familyData.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
+    if (filtered.length > 0) {
+        resBox.style.display = 'block';
+        filtered.forEach(m => {
+            const div = document.createElement('div');
+            div.innerText = m.name;
+            div.onclick = () => scrollToMember(m.id, m.name);
+            resBox.appendChild(div);
+        });
+    } else { resBox.style.display = 'none'; }
 }
 
+function scrollToMember(id, name) {
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('treeSearch').value = name;
+    document.querySelectorAll('.family-node').forEach(n => n.classList.remove('highlight-node'));
+    const target = document.getElementById(`node-${id}`);
+    if (target) {
+        target.open = true; target.classList.add('highlight-node');
+        let p = target.parentElement.closest('details');
+        while(p) { p.open = true; p = p.parentElement.closest('details'); }
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// --- AUTH & DOWNLOAD FIX ---
 function checkAuth() {
     if (document.getElementById('adminPass').value === "admin786") {
         isAdmin = true;
         document.getElementById('admin-panel').style.display = 'block';
         document.getElementById('admin-lock').style.display = 'none';
-        renderFieldManager();
         closeLogin(); refresh();
     } else alert("ভুল পাসওয়ার্ড!");
+}
+
+function downloadUpdatedFile() {
+    isAdmin = false;
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('admin-lock').style.display = 'flex';
+    document.getElementById('adminPass').value = '';
+    refresh();
+
+    let html = document.documentElement.outerHTML;
+    
+    const dataStr = `let familyData = ${JSON.stringify(familyData, null, 2)};`;
+    const fieldsStr = `let dynamicFields = ${JSON.stringify(dynamicFields)};`;
+    
+    html = html.replace(/let familyData = \[[\s\S]*?\];/, dataStr);
+    html = html.replace(/let dynamicFields = \[[\s\S]*?\];/, fieldsStr);
+    html = html.replace(/let isAdmin = false;/g, 'let isAdmin = false;');
+
+    const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "index.html";
+    a.click();
+    
+    alert("ফাইল ডাউনলোড হয়েছে।");
 }
 
 function clearForm() {
     document.getElementById('edit-id').value = '';
     document.getElementById('mName').value = '';
+    document.getElementById('mParentId').value = '';
     document.querySelectorAll('.dyn-input').forEach(i => i.value = '');
 }
 
-function toggleAllTrees(open) { document.querySelectorAll('.family-node').forEach(n => n.open = open); }
-function openImg(src) { if(src){ document.getElementById('imgModal').style.display='flex'; document.getElementById('modalImg').src=src; } }
 function showLogin() { document.getElementById('login-modal').style.display = 'flex'; }
 function closeLogin() { document.getElementById('login-modal').style.display = 'none'; }
 function logout() { location.reload(); }
+function toggleAllTrees(open) { document.querySelectorAll('.family-node').forEach(n => n.open = open); }
+function openImg(src) { if(src){ document.getElementById('imgModal').style.display='flex'; document.getElementById('modalImg').src=src; } }
 
-window.onload = refresh;
+window.onload = function() {
+    isAdmin = false;
+    refresh();
+};
 </script>
-</body>
-</html>
+
+</body></html>
