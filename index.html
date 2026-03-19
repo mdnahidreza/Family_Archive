@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>হাফিজ মোল্লা ফ্যামিলি আর্কাইভ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #007bff; --bg: #f4f7f6; --danger: #dc3545; --success: #28a745; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 100px; scroll-behavior: smooth; }
+        .container { max-width: 550px; margin: auto; }
+        
+        .search-container { margin-bottom: 15px; position: relative; }
+        #treeSearch { width: 100%; padding: 14px 20px; border-radius: 30px; border: 2px solid var(--primary); box-sizing: border-box; outline: none; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .btn-ctrl { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; color: #555; margin: 2px; }
+
+        #admin-panel { display: none; background: #fff; padding: 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 12px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        
+        .field-manager { background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 15px; }
+        .field-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 5px 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #eee; }
+        
+        .admin-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-download { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-logout { background: #6c757d; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+
+        details { background: #fff; margin-bottom: 10px; border-radius: 10px; border: 1px solid #e0e0e0; overflow: hidden; }
+        summary { padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; outline: none; }
+        .content { padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
+        .profile { display: flex; gap: 12px; align-items: center; }
+        .profile img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
+        
+        .highlight-node { border: 3px solid #ffc107 !important; background: #fff9e6 !important; box-shadow: 0 0 15px rgba(255,193,7,0.5); }
+
+        #admin-lock { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: #222; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; border: 3px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.4); font-size: 24px; cursor: pointer; }
+        #login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; align-items: center; justify-content: center; }
+        .login-box { background: #fff; padding: 25px; border-radius: 15px; width: 280px; text-align: center; }
+        #imgModal { display: none; position: fixed; z-index: 30000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        #modalImg { max-width: 90%; max-height: 80%; border-radius: 10px; border: 3px solid #fff; }
+        .nested { margin-left: 15px; border-left: 2px dashed #ccc; padding-left: 10px; }
+        footer { text-align: center; padding: 25px; color: #2c3e50; font-size: 1em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align: center;">👨‍👩‍👧‍👦 হাফিজ মোল্লা ফ্যামিলি আর্কাইভ</h2>
+
+    <div class="search-container">
+        <input type="text" id="treeSearch" list="search-suggestions" placeholder="নাম লিখে সাজেশনে ক্লিক করুন..." oninput="handleSearch(this.value)">
+        <datalist id="search-suggestions"></datalist>
+    </div>
+
+    <div style="text-align:center; margin-bottom:15px;">
+        <button class="btn-ctrl" onclick="toggleAllTrees(true)">📂 সব খুলুন</button>
+        <button class="btn-ctrl" onclick="toggleAllTrees(false)">📁 সব আটকান</button>
+    </div>
+
+    <div id="admin-panel">
+        <h3 style="margin-top:0; color: var(--primary);">অ্যাডমিন কন্ট্রোল</h3>
+        <div id="member-form">
+            <input type="hidden" id="edit-id">
+            <div class="input-group"><input type="number" id="mSerial" placeholder="সিরিয়াল নম্বর"></div>
+            <div class="input-group"><input type="text" id="mName" placeholder="সদস্যের নাম"></div>
+            <div class="input-group"><input type="text" id="mParentId" list="parent-list" placeholder="পিতা/মাতার আইডি (ID)"></div>
+            <div class="input-group"><input type="text" id="mRelation" placeholder="সম্পর্ক"></div>
+            <div class="input-group"><input type="text" id="mPhoto" placeholder="ছবির লিঙ্ক (URL)"></div>
+            <div id="dynamic-inputs-container"></div>
+            <div class="admin-btns">
+                <button class="btn-save" id="save-btn" onclick="addOrUpdate()">সেভ করুন</button>
+                <button class="btn-download" onclick="downloadUpdatedFile()">ফাইল ডাউনলোড</button>
+            </div>
+            <button class="btn-logout" onclick="logout()">লগআউট</button>
+        </div>
+    </div>
+
+    <div id="tree-display"></div>
+</div>
+
+<div id="login-modal">
+    <div class="login-box">
+        <h3>অ্যাডমিন লগইন</h3>
+        <input type="password" id="adminPass" placeholder="পাসওয়ার্ড">
+        <button class="btn-save" style="width:100%; margin-top:10px;" onclick="checkAuth()">প্রবেশ করুন</button>
+        <button style="background:none; border:none; color:red; cursor:pointer; margin-top:15px;" onclick="closeLogin()">বন্ধ করুন</button>
+    </div>
+</div>
+
+<button id="admin-lock" onclick="showLogin()">🔒</button>
+<div id="imgModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
+
+<footer>Developed By: Md Nahidur Reza &copy; 2026</footer>
+
+<script>
+// --- FULL DATA ---
+let familyData = [
+  { "id": 1, "parentId": null, "name": "মরহুম হাজি আঃ হাফিজ মোল্লা", "relation": "মূল পুরুষ", "img": "https://i.ibb.co.com/gZDrkKNy/HAHM.png", "extra": {}, "serial": 1 },
+  { "id": 2, "parentId": 1, "name": "মরহুম হাজি আঃ আহাদ মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/bj6nnQBZ/01.jpg", "extra": {}, "serial": 1 },
+  { "id": 3, "parentId": 2, "name": "মরহুম হাজি মাহাবুব রহমান মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/tp0R1w96/011.jpg", "extra": {}, "serial": 1 },
+  { "id": 4, "parentId": 2, "name": "মোসাম্মৎ আসমা বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/5WhF6mwX/012.jpg", "extra": {}, "serial": 2 },
+  { "id": 5, "parentId": 2, "name": "মোহাম্মদ মোজাম্মেল হক মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/6csZVrcD/013.jpg", "extra": {}, "serial": 3 },
+  { "id": 6, "parentId": 2, "name": "মোঃ গোলাম সারোয়ার মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/VWPRzq3D/014.jpg", "extra": {}, "serial": 4 },
+  { "id": 7, "parentId": 2, "name": "মোঃ বাবুল মিয়া মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/jYtymMV/015.jpg", "extra": {}, "serial": 5 },
+  { "id": 8, "parentId": 2, "name": "মোঃ সাখাওয়াত হোসেন আবুল মোল্লা", "relation": "পুত্র-০৫", "img": "https://i.ibb.co.com/0jrQP4r0/016.jpg", "extra": {}, "serial": 6 },
+  { "id": 9, "parentId": 2, "name": "মোঃ সোহেল মিয়া মোল্লা", "relation": "পুত্র-০৬", "img": "https://i.ibb.co.com/VKxcRSw/017.jpg", "extra": {}, "serial": 7 },
+  { "id": 10, "parentId": 1, "name": "মরহুম হাজি আঃআউয়াল মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/KcSN6vZ3/02.jpg", "extra": {}, "serial": 2 },
+  { "id": 11, "parentId": 10, "name": "মোঃ আব্দুল হাই মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/chcZxx22/021.jpg", "extra": {}, "serial": 1 },
+  { "id": 12, "parentId": 10, "name": "মরহুম আঃ কাইয়ুম মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/LDXr45N2/022.jpg", "extra": {}, "serial": 2 },
+  { "id": 13, "parentId": 10, "name": "মোসাম্মদ শামসুন্নাহার বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/Vp2R3rW5/023.jpg", "extra": {}, "serial": 3 },
+  { "id": 14, "parentId": 10, "name": "হাজি মোঃ মনিরুজ্জামান মনির মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/fYFtHjMJ/024.jpg", "extra": {}, "serial": 4 },
+  { "id": 15, "parentId": 10, "name": "মোসাম্মৎ নুরুন নাহার বেগম", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/DfbBy380/025.jpg", "extra": {}, "serial": 5 },
+  { "id": 16, "parentId": 10, "name": "মোঃ কামরুজ্জামান রাজা মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/VWVWLWKy/026.jpg", "extra": {}, "serial": 6 },
+  { "id": 17, "parentId": 10, "name": "মোসাম্মৎ জান্নাত-ঊন নাহার বেগম", "relation": "কন্যা-০৩", "img": "https://i.ibb.co.com/5P3SV7T/027.jpg", "extra": {}, "serial": 7 },
+  { "id": 18, "parentId": 1, "name": "মোঃআব্দুল বাতেন মিয়া মোল্লা", "relation": "পুত্র-০৩", "img": "https://i.ibb.co.com/67j8zrMt/03.jpg", "extra": {}, "serial": 3 },
+  { "id": 19, "parentId": 18, "name": "মোঃ সেলিম মিয়া মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/vGYMWvY/031.jpg", "extra": {}, "serial": 1 },
+  { "id": 20, "parentId": 18, "name": "মোসাম্মৎ ইয়াসমিন বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/7dDC2jQj/032.jpg", "extra": {}, "serial": 2 },
+  { "id": 21, "parentId": 18, "name": "মোঃ মোরাদ মিয়া মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/60qKsyrp/033.jpg", "extra": {}, "serial": 3 },
+  { "id": 22, "parentId": 1, "name": "মোসাম্মৎ হোসনে আরা বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/wFRchNBB/04.jpg", "extra": {}, "serial": 4 },
+  { "id": 23, "parentId": 22, "name": "মোসাম্মৎ ফেরদৌসী বেগম", "relation": "কন্যা-০১", "img": "https://i.ibb.co.com/F4cDBk00/041.jpg", "extra": {}, "serial": 1 },
+  { "id": 24, "parentId": 22, "name": "মোঃগোলাম রব্বানী মোল্লা", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/TBM20Pr5/042.jpg", "extra": {}, "serial": 2 },
+  { "id": 25, "parentId": 22, "name": "মোঃ জুবায়ের মোল্লা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/WNVNgsJh/043.jpg", "extra": {}, "serial": 3 },
+  { "id": 26, "parentId": 1, "name": "বীর মুক্তিযোদ্ধা মোঃগোলাম মোস্তফা মিয়া মোল্লা", "relation": "পুত্র-০৪", "img": "https://i.ibb.co.com/nNGdjHvF/05.jpg", "extra": {"তথ্য": "গেজেট নং ২৬৪৫"}, "serial": 5 },
+  { "id": 27, "parentId": 1, "name": "মরহুম মোঃগোলাম কিবরিয়া মিয়া মোল্লা", "relation": "পুত্র-০৫", "img": "https://i.ibb.co.com/zhN6D7rr/06.jpg", "extra": {}, "serial": 6 },
+  { "id": 28, "parentId": 27, "name": "আলী আহসান", "relation": "পুত্র-০১", "img": "https://i.ibb.co.com/CTX35tk/061.jpg", "extra": {}, "serial": 1 },
+  { "id": 29, "parentId": 27, "name": "ফাহমিদা আক্তার সিনহা", "relation": "কন্যা-০১", "img": "https://via.placeholder.com/65", "extra": {}, "serial": 2 },
+  { "id": 30, "parentId": 27, "name": "মোঃ নাহিদুর রেজা", "relation": "পুত্র-০২", "img": "https://i.ibb.co.com/Mkh4sxQd/063.jpg", "extra": {"পেশা": "ওয়েব ডেভেলপার"}, "serial": 3 },
+  { "id": 31, "parentId": 27, "name": "সানজীদা আক্তার নাদিয়া", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/HLdYXbsq/064.jpg", "extra": {}, "serial": 4 },
+  { "id": 32, "parentId": 1, "name": "মোঃগোলাম মর্তুজা মিয়া মোল্লা", "relation": "পুত্র-০৬", "img": "https://i.ibb.co.com/k2N99SFv/07.jpg", "extra": {}, "serial": 7 },
+  { "id": 33, "parentId": 1, "name": "মরহুমা মোসাম্মৎ শাহানাজ বেগম", "relation": "কন্যা-০২", "img": "https://i.ibb.co.com/ks1Kcj38/08.jpg", "extra": {}, "serial": 8 },
+  { "id": 34, "parentId": 1, "name": "মোসাম্মৎ শরীফা বেগম", "relation": "কন্যা-০৩", "img": "https://i.ibb.co.com/3mLjwRnx/09.jpg", "extra": {}, "serial": 9 }
+];
+
+let isAdmin = false;
+
+// --- RENDER FUNCTION ---
+function renderTree(parentId, container) {
+    const children = familyData
+        .filter(m => m.parentId == parentId)
+        .sort((a, b) => (a.serial || 0) - (b.serial || 0));
+
+    children.forEach(m => {
+        const details = document.createElement('details');
+        details.className = 'family-node';
+        details.dataset.name = m.name.toLowerCase();
+        if (parentId === null) details.open = true;
+
+        let extraHtml = '';
+        if(m.extra) {
+            for(let key in m.extra) {
+                if(m.extra[key]) extraHtml += `<small><b>${key}:</b> ${m.extra[key]}</small><br>`;
+            }
+        }
+
+        details.innerHTML = `
+            <summary>${m.name} <small style="color:var(--primary)">${m.relation || ''}</small></summary>
+            <div class="content">
+                <div class="profile">
+                    <img src="${m.img || 'https://via.placeholder.com/65'}" onclick="openImg('${m.img}')">
+                    <div>
+                        <b>${m.name}</b> (ID: ${m.id})<br>
+                        ${extraHtml || '<small>অতিরিক্ত তথ্য নেই</small>'}
+                    </div>
+                </div>
+                <div style="display: ${isAdmin ? 'flex' : 'none'}; gap:10px; margin-top:10px;">
+                    <button onclick="startEdit(${m.id})" style="background:#ffc107; border:none; padding:5px 10px; border-radius:5px;">এডিট</button>
+                    <button onclick="deleteMember(${m.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:5px;">মুছুন</button>
+                </div>
+            </div>
+            <div class="nested"></div>
+        `;
+        container.appendChild(details);
+        renderTree(m.id, details.querySelector('.nested'));
+    });
+}
+
+function refresh() {
+    const display = document.getElementById('tree-display');
+    display.innerHTML = '';
+    renderTree(null, display);
+    
+    // ডাটালিস্ট আপডেট
+    const sl = document.getElementById('search-suggestions');
+    sl.innerHTML = '';
+    familyData.forEach(m => sl.innerHTML += `<option value="${m.name}">`);
+}
+
+// --- SEARCH LOGIC (FIXED) ---
+function handleSearch(val) {
+    const searchVal = val.trim().toLowerCase();
+    if (!searchVal) return;
+
+    let found = false;
+
+    document.querySelectorAll('.family-node').forEach(node => {
+        node.classList.remove('highlight-node');
+
+        const name = node.dataset.name; // শুধু নাম নিচ্ছে
+
+        if (name.includes(searchVal)) {
+            node.open = true;
+            node.classList.add('highlight-node');
+
+            // parent খুলবে
+            let p = node.parentElement.closest('details');
+            while (p) {
+                p.open = true;
+                p = p.parentElement.closest('details');
+            }
+
+            if (!found) {
+                node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                found = true;
+            }
+        }
+    });
+}
+
+// --- ADMIN & OTHERS ---
+function checkAuth() {
+    if (document.getElementById('adminPass').value === "admin786") {
+        isAdmin = true;
+        document.getElementById('admin-panel').style.display = 'block';
+        document.getElementById('admin-lock').style.display = 'none';
+        closeLogin(); refresh();
+    } else alert("ভুল পাসওয়ার্ড!");
+}
+
+function toggleAllTrees(open) { document.querySelectorAll('.family-node').forEach(n => n.open = open); }
+function openImg(src) { if(src){ document.getElementById('imgModal').style.display='flex'; document.getElementById('modalImg').src=src; } }
+function showLogin() { document.getElementById('login-modal').style.display = 'flex'; }
+function closeLogin() { document.getElementById('login-modal').style.display = 'none'; }
+function logout() { location.reload(); }
+
+window.onload = refresh;
+</script>
+</body>
+</html>
