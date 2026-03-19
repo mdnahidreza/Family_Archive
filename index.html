@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ফ্যামিলি আর্কাইভ</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root { --primary:#007bff; --bg:#f4f7f6; --danger:#dc3545; --success:#28a745; }
+
+body { font-family:'Hind Siliguri',sans-serif; background:var(--bg); padding:15px; }
+
+.container { max-width:600px; margin:auto; }
+
+#treeSearch {
+ width:100%; padding:14px;
+ border-radius:30px;
+ border:2px solid var(--primary);
+}
+
+details { background:#fff; margin-bottom:10px; border-radius:10px; }
+summary { padding:12px; font-weight:bold; cursor:pointer; }
+
+.highlight-node {
+ border:3px solid #ffc107 !important;
+ background:#fff9e6 !important;
+}
+
+.nested { margin-left:15px; border-left:2px dashed #ccc; padding-left:10px; }
+
+.profile { display:flex; gap:10px; align-items:center; }
+
+.profile img {
+ width:60px; height:60px;
+ border-radius:50%;
+ cursor:pointer;
+ border:2px solid var(--primary);
+}
+
+button { padding:8px 10px; border:none; border-radius:5px; cursor:pointer; }
+
+.admin { background:var(--primary); color:#fff; }
+
+.delete { background:var(--danger); color:#fff; }
+
+#admin-panel { display:none; background:#fff; padding:15px; border-radius:10px; margin-top:15px; }
+
+input { width:100%; padding:10px; margin:5px 0; }
+
+#imgModal {
+ display:none;
+ position:fixed;
+ top:0; left:0;
+ width:100%; height:100%;
+ background:rgba(0,0,0,0.9);
+ justify-content:center;
+ align-items:center;
+}
+
+#imgModal img {
+ max-width:90%;
+ border-radius:10px;
+}
+
+#lock {
+ position:fixed;
+ bottom:20px; right:20px;
+ background:#000; color:#fff;
+ width:50px; height:50px;
+ border-radius:50%;
+ display:flex; align-items:center; justify-content:center;
+ cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">👨‍👩‍👧‍👦 ফ্যামিলি আর্কাইভ</h2>
+
+<input id="treeSearch" placeholder="নাম / সম্পর্ক / তথ্য লিখুন..." oninput="search(this.value)">
+
+<br><br>
+
+<button onclick="toggleAll(true)">সব খুলুন</button>
+<button onclick="toggleAll(false)">সব বন্ধ</button>
+
+<div id="admin-panel">
+<h3>Admin Panel</h3>
+
+<input id="name" placeholder="নাম">
+<input id="parent" placeholder="Parent ID">
+<input id="relation" placeholder="সম্পর্ক">
+<input id="img" placeholder="Image URL">
+
+<input id="extraKey" placeholder="Extra Field Name">
+<input id="extraVal" placeholder="Extra Value">
+
+<button onclick="save()">Save</button>
+<button onclick="download()">Download</button>
+</div>
+
+<br>
+
+<div id="tree"></div>
+
+</div>
+
+<div id="imgModal" onclick="this.style.display='none'">
+<img id="modalImg">
+</div>
+
+<div id="lock" onclick="login()">🔒</div>
+
+<script>
+
+// 🔥 LOCAL STORAGE LOAD
+let familyData = JSON.parse(localStorage.getItem("familyData")) || [
+ {id:1,parentId:null,name:"হাফিজ মোল্লা",relation:"মূল পুরুষ",img:"",extra:{}}
+];
+
+let editId=null;
+let admin=false;
+
+// 🔥 RENDER
+function render(parent,container){
+
+ let children=familyData.filter(x=>x.parentId==parent);
+
+ children.forEach(m=>{
+
+  let d=document.createElement("details");
+  d.className="family-node";
+
+  d.dataset.name=m.name.toLowerCase();
+  d.dataset.relation=(m.relation||"").toLowerCase();
+  d.dataset.extra=JSON.stringify(m.extra).toLowerCase();
+
+  if(parent==null) d.open=true;
+
+  let extraHTML="";
+  for(let k in m.extra){
+   extraHTML+=`<small>${k}: ${m.extra[k]}</small><br>`;
+  }
+
+  d.innerHTML=`
+  <summary>${m.name} (${m.relation})</summary>
+
+  <div class="profile">
+   <img src="${m.img||'https://via.placeholder.com/60'}" onclick="openImg('${m.img}')">
+   <div>
+    <b>${m.name}</b> (ID:${m.id})<br>
+    ${extraHTML||'No info'}
+   </div>
+  </div>
+
+  ${admin?`
+  <button class="admin" onclick="edit(${m.id})">Edit</button>
+  <button class="delete" onclick="del(${m.id})">Delete</button>
+  `:''}
+
+  <div class="nested"></div>
+  `;
+
+  container.appendChild(d);
+
+  render(m.id,d.querySelector(".nested"));
+ });
+}
+
+function refresh(){
+ let t=document.getElementById("tree");
+ t.innerHTML="";
+ render(null,t);
+ localStorage.setItem("familyData",JSON.stringify(familyData));
+}
+
+// 🔍 SEARCH
+function search(val){
+
+ let s=val.toLowerCase();
+
+ document.querySelectorAll(".family-node").forEach(n=>{
+  n.classList.remove("highlight-node");
+  n.open=false;
+ });
+
+ if(!s) return;
+
+ document.querySelectorAll(".family-node").forEach(n=>{
+
+  if(
+   n.dataset.name.includes(s) ||
+   n.dataset.relation.includes(s) ||
+   n.dataset.extra.includes(s)
+  ){
+   n.open=true;
+   n.classList.add("highlight-node");
+
+   let p=n.parentElement.closest("details");
+   while(p){ p.open=true; p=p.parentElement.closest("details"); }
+  }
+ });
+}
+
+// 🔧 ADMIN
+function login(){
+ let pass=prompt("Password?");
+ if(pass==="admin786"){
+  admin=true;
+  document.getElementById("admin-panel").style.display="block";
+  refresh();
+ }
+}
+
+function save(){
+
+ let obj={
+  id: editId || Date.now(),
+  parentId: document.getElementById("parent").value || null,
+  name: document.getElementById("name").value,
+  relation: document.getElementById("relation").value,
+  img: document.getElementById("img").value,
+  extra:{}
+ };
+
+ let k=document.getElementById("extraKey").value;
+ let v=document.getElementById("extraVal").value;
+
+ if(k) obj.extra[k]=v;
+
+ if(editId){
+  familyData=familyData.map(x=>x.id==editId?obj:x);
+ } else {
+  familyData.push(obj);
+ }
+
+ editId=null;
+ refresh();
+}
+
+function edit(id){
+ let m=familyData.find(x=>x.id==id);
+ editId=id;
+
+ document.getElementById("name").value=m.name;
+ document.getElementById("parent").value=m.parentId;
+ document.getElementById("relation").value=m.relation;
+ document.getElementById("img").value=m.img;
+}
+
+function del(id){
+ familyData=familyData.filter(x=>x.id!=id);
+ refresh();
+}
+
+// 📸 IMAGE
+function openImg(src){
+ if(!src) return;
+ document.getElementById("imgModal").style.display="flex";
+ document.getElementById("modalImg").src=src;
+}
+
+// 📂
+function toggleAll(v){
+ document.querySelectorAll("details").forEach(n=>n.open=v);
+}
+
+// 💾 DOWNLOAD
+function download(){
+ let dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(familyData,null,2));
+ let a=document.createElement("a");
+ a.href=dataStr;
+ a.download="family.json";
+ a.click();
+}
+
+window.onload=refresh;
+
+</script>
+
+</body>
+</html>
